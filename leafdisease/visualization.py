@@ -17,20 +17,13 @@ def show_samples(dataset, label_names, n=6, cols=2):
         ax.axis("off")
 
     for ax, index in zip(axes.flat, indices):
-        sample = dataset[index]
-        image = sample["image"]
-        
+        image, label = dataset[index]
         if isinstance(image, torch.Tensor):
             image = image.detach().cpu().permute(1, 2, 0)
 
         ax.imshow(image)
-        ax.set_title(
-            label_names[str(sample["label"])],
-            fontsize=9,
-        )
-
-    plt.tight_layout()
-    plt.show()
+        ax.set_title(label_names[str(label)], fontsize=9)
+    plt.tight_layout(); plt.show()
     
 
 def plot_history(result, title):
