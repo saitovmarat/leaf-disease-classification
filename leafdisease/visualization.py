@@ -32,21 +32,21 @@ def show_samples(dataset, label_names, n=6, cols=2):
     plt.tight_layout()
     plt.show()
     
-    
+
 def plot_history(result, title):
-    '''
-    Вспомогательная функция построения графиков обучения.
-    '''
-    h = result["history"]
-    fig, axes = plt.subplots(1, 2, figsize=(11, 3.5))
+    history = result["history"]
+    epochs = [row["epoch"] for row in history]
+
+    fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+
     for ax, train_key, val_key, ylabel in [
-        (axes[0], "train_loss", "val_loss", 'Кросс-энтропия'),
-        (axes[1], "train_acc", "val_acc", 'Доля верных ответов')
+        (axes[0], "train_loss", "val_loss", "Loss (Cross-Entropy)"),
+        (axes[1], "train_accuracy", "val_accuracy", "Accuracy"),
     ]:
-        ax.plot([r["epoch"] for r in h], [r[train_key] for r in h], label='обучение (в течение эпохи)')
-        ax.plot([r["epoch"] for r in h], [r[val_key] for r in h], label='валидация')
-        ax.axvline(result["best_epoch"], ls="--", color="gray", alpha=0.6, label='выбранная эпоха')
-        ax.set(xlabel='Эпоха', ylabel=ylabel, title=f"{title}: {ylabel}")
+        ax.plot(epochs, [row[train_key] for row in history], label="train")
+        ax.plot(epochs, [row[val_key] for row in history], label="val")
+        ax.axvline(result["best_epoch"], linestyle="--", color="gray", alpha=0.6, label="best epoch by loss")
+        ax.set(xlabel="Epoch", ylabel=ylabel, title=f"{title}: {ylabel}")
         ax.grid(alpha=0.25)
         ax.legend(fontsize=8)
     plt.tight_layout(); plt.show()

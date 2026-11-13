@@ -17,18 +17,9 @@ class LeafDataset():
         return len(self.paths)
         
     def __getitem__(self, index):
-        path = self.paths[index]
-        with Image.open(path) as image:
+        with Image.open(self.paths[index]) as image:
             image = image.convert("RGB")
             if self.transform is not None:
                 image = self.transform(image)
-
-        sample = {
-            "image": image,
-            "image_id": path.name,
-        }
-        
-        if self.labels is not None:
-            sample["label"] = int(self.labels[index])
             
-        return sample
+        return image, int(self.labels[index])
