@@ -48,9 +48,16 @@ def fit_model(
 ):
     history = []
     best_loss, best_state, best_epoch = float("inf"), None, None
+
+    baseline = evaluate(model, val_loader, device)
+    print(
+        f"parameters={sum(p.numel() for p in model.parameters()):,} | "
+        f"val before training: loss={baseline['val_loss']:.3f}, accuracy={baseline['val_accuracy']:.3f}"
+    )
+
     
     for epoch in range(1, epochs + 1):
-        train_metrics = train_one_epoch(model, train_loader, optimizer)
+        train_metrics = train_one_epoch(model, train_loader, optimizer, device)
         val_metrics = evaluate(model, val_loader, device)
         history.append({
             "epoch": epoch, **train_metrics, **val_metrics
@@ -64,14 +71,14 @@ def fit_model(
         
         print(
             f"epoch {epoch:2d}/{epochs} | "
-            f"train loss {train_metrics["train_loss"]}, train accuracy {train_metrics["train_accuracy"]} | "
-            f"val loss {val_metrics["val_loss"]}, val accuracy {val_metrics["val_accuracy"]}"
+            f"train loss {train_metrics["train_loss"]:.3f}, train accuracy {train_metrics["train_accuracy"]:.3f} | "
+            f"val loss {val_metrics["val_loss"]:.3f}, val accuracy {val_metrics["val_accuracy"]:.3f}"
         )
 
     model.load_state_dict(best_state)
     model.eval()
 
-    Path("checkpoints").mkdir(exist_ok=True)
+    Path(checkpoint_path).parent.mkdir(parents=True, exist_ok=True)
     torch.save(
         {
             "state_dict": best_state, "model_class": type(model).__name__,
