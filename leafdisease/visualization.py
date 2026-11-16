@@ -33,12 +33,12 @@ def plot_history(result, title):
     fig, axes = plt.subplots(1, 2, figsize=(12, 4))
 
     for ax, train_key, val_key, ylabel in [
-        (axes[0], "train_loss", "val_loss", "Loss (Cross-Entropy)"),
-        (axes[1], "train_accuracy", "val_accuracy", "Accuracy"),
+        (axes[0], "train_loss", "val_loss", "Loss"),
+        (axes[1], "train_metric", "val_metric", "Metric"),
     ]:
         ax.plot(epochs, [row[train_key] for row in history], label="train")
         ax.plot(epochs, [row[val_key] for row in history], label="val")
-        ax.axvline(result["best_epoch"], linestyle="--", color="gray", alpha=0.6, label="best epoch by loss")
+        ax.axvline(result["best_epoch"], linestyle="--", color="gray", alpha=0.6, label=f"best epoch by {result["monitor"]}")
         ax.set(xlabel="Epoch", ylabel=ylabel, title=f"{title}: {ylabel}")
         ax.grid(alpha=0.25)
         ax.legend(fontsize=8)
