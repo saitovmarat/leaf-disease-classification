@@ -23,7 +23,7 @@ def train_one_epoch(
         
         logits = model(x)
         losses = loss_fn(logits, y)
-        assert losses.shape == (len(y, ))
+        assert losses.shape == (len(y),), (f"Expected shape {(len(y), )}, got {tuple(losses.shape)}")
         
         loss = losses.mean()
         loss.backward()
@@ -59,7 +59,7 @@ def evaluate(
         
         logits = model(x)
         losses = loss_fn(logits, y)
-        assert losses.shape == (len(y, ))
+        assert losses.shape == (len(y),), (f"Expected shape {(len(y), )}, got {tuple(losses.shape)}")
         
         num_samples += len(y)        
         total_loss += losses.sum().item()
