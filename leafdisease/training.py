@@ -4,7 +4,6 @@ import torch
 import torch.nn.functional as F
 import math
 
-
 from leafdisease.utils import synchronize
 
 
@@ -23,24 +22,24 @@ def train_one_epoch(
         optimizer.zero_grad(set_to_none=True)
         
         logits = model(x)
-        loss = loss_fn(logits, y)
+        losses = loss_fn(logits, y)
+        assert losses.shape == (len(y, ))
         
+        loss = losses.mean()
         loss.backward()
         optimizer.step()
 
         num_samples += len(y)
-        total_loss += loss.item() * len(y)
+        total_loss += losses.detach().sum().item()
         
         all_gt.append(y.detach())
         all_preds.append(logits.detach().argmax(dim=1))   
 
     gts = torch.cat(all_gt).cpu().numpy()
     preds = torch.cat(all_preds).cpu().numpy()
-    
-    score = metric_fn(gts, preds)
     return {
         "train_loss": total_loss / num_samples, 
-        "train_metric": float(score)
+        "train_metric": float(metric_fn(gts, preds))
     }
 
 
@@ -59,21 +58,20 @@ def evaluate(
         x, y = x.to(device), y.to(device)
         
         logits = model(x)
-        loss = loss_fn(logits, y)
+        losses = loss_fn(logits, y)
+        assert losses.shape == (len(y, ))
         
         num_samples += len(y)        
-        total_loss += loss.item() * len(y)
+        total_loss += losses.sum().item()
         
         all_gt.append(y)
         all_preds.append(logits.argmax(dim=1))
 
     gts = torch.cat(all_gt).cpu().numpy()
     preds = torch.cat(all_preds).cpu().numpy()
-    
-    score = metric_fn(gts, preds)
     return {
         "val_loss": total_loss / num_samples, 
-        "val_metric": float(score)
+        "val_metric": float(metric_fn(gts, preds))
     }
 
 
@@ -191,16 +189,16 @@ def fit_model(
                 "run_config": run_config,
             }, checkpoint_path)
 
+        lr_text = ", ".join(f"{lr:.3e}" for lr in learning_rates)
         print(
             f"epoch {epoch:2d}/{epochs} | "
-            f"lr={learning_rates} | "
+            f"lr={lr_text} | "
             f"train loss={train_metrics['train_loss']:.3f}, "
             f"metric={train_metrics['train_metric']:.3f} | "
             f"val loss={val_metrics['val_loss']:.3f}, "
             f"metric={val_metrics['val_metric']:.3f}"
         )
 
-        # Для scheduler с шагом раз в эпоху.
         if scheduler is not None:
             scheduler.step()
 
